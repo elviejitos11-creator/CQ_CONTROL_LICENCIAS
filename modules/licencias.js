@@ -55,9 +55,7 @@ function validarLicencia(db,datos){
     return {autorizada:false,motivo:"licencia_vencida"};
   }
 
-  if(licencia.dispositivo_id&&licencia.dispositivo_id!==dispositivo){
-    return {autorizada:false,motivo:"otro_dispositivo"};
-  }
+
 
   
  const registro=db.prepare(
