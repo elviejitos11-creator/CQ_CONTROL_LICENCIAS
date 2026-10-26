@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CQ CONTROL - Licencias</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#0b1020;color:#f5f6fa;font-family:Arial,sans-serif}
+header{padding:22px 5%;background:#171f35;border-bottom:1px solid #333c57}
+h1{color:#b8a0ff;margin:0}
+main{max-width:1100px;margin:auto;padding:24px}
+section{background:#171f35;border:1px solid #333c57;border-radius:14px;padding:20px;margin-bottom:20px}
+h2{font-size:19px}
+input,select{background:#0b1020;color:white;border:1px solid #48526d;padding:12px;border-radius:8px;min-width:180px}
+button{background:#7c3aed;color:white;border:0;padding:11px 15px;border-radius:8px;cursor:pointer;margin:3px}
+button:disabled{opacity:.5}
+.verde{background:#15803d}
+.rojo{background:#b91c1c}
+.fila{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.item{border:1px solid #37415c;padding:15px;border-radius:10px;margin:10px 0}
+small{color:#aab3cc}
+#mensaje{padding:10px;color:#facc15;white-space:pre-wrap}
+#clave{white-space:pre-wrap;overflow-wrap:anywhere;color:#4ade80}
+</style>
+<style>#clave{display:none!important}</style>
+</head>
+<body>
+<header><h1>🐺 CQ CONTROL</h1><p>Clientes, extensiones y membresías</p></header>
+<main>
+<div class="fila"><button onclick="cargar()">ACTUALIZAR DATOS</button><button onclick="salir()">CERRAR SESIÓN</button></div>
+<p id="mensaje"></p>
+
+<section>
+<h2>Resumen de administración</h2>
+<div class="fila">
+ <div class="item">Extensiones disponibles: <strong>2</strong></div>
+ <div class="item">Clientes: <strong id="totalClientes">0</strong></div>
+ <div class="item">Licencias activas: <strong id="totalActivas">0</strong></div>
+ <div class="item">Licencias suspendidas: <strong id="totalSuspendidas">0</strong></div>
+</div>
+<p><small>Administra clientes, membresías y licencias desde esta misma pantalla.</small></p>
+</section>
+<section>
+<h2>Registrar cliente</h2>
+<form id="formCliente" class="fila">
+<input id="nombre" placeholder="Nombre del cliente" required maxlength="100">
+<input id="email" placeholder="Correo (opcional)" maxlength="200">
+<button type="submit">CREAR CLIENTE</button>
+</form>
+</section>
+
+<section>
+<h2>Crear membresía</h2>
+<form id="formLicencia" class="fila">
+<select id="cliente" required></select>
+<select id="producto">
+<option value="LOBO_PRO_1">🐺 LOBO PRO 1</option>
+<option value="LOBO_PRO_2">🐺🐺 LOBO PRO 2</option>
+</select>
+<label>Dias <input id="dias" type="number" min="0" step="1" value="30" required style="width:125px"></label>
+<label>Perfiles máximos <input id="maxPerfilesNuevo" type="number" min="1" max="10000" value="20" required style="width:105px"></label><button type="submit">GENERAR LICENCIA</button>
+</form>
+<p id="clave"></p>
+</section>
+
+<section>
+<h2>Licencias de clientes</h2>
+<div id="licencias">Cargando...</div>
+</section>
+</main>
+
+<script src="/fichas-clientes.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const msg=t=>$("mensaje").textContent=t;
+
+async function api(url,options={}){
+ const r=await fetch(url,{
+  credentials:"same-origin",
+  ...options,
+  headers:{"Content-Type":"application/json",...(options.headers||{})}
+ });
+ if(r.status===401){location.href="/login.html";throw Error("Sesión requerida")}
+ const data=await r.json();
+ if(!r.ok)throw Error(data.error||"Error HTTP "+r.status);
+ return data;
+}
+
+async function cargar(){
+ try {
+  const [clientes,licencias]=await Promise.all([
+   api("/api/clientes"),
+   api("/api/control/resumen")
+  ]);
+  $("cliente").replaceChildren();
+  for(const c of clientes){
+   const o=document.createElement("option");
+   o.value=c.id;
+   o.textContent=c.nombre+" (ID "+c.id+")";
+   $("cliente").append(o);
+  }
+
+  $("totalClientes").textContent=clientes.length;
+  $("totalActivas").textContent=licencias.filter(x=>
+    String(x.estado).toUpperCase()==="ACTIVA" &&
+    Date.parse(x.vence_en)>Date.now()
+  ).length;
+  $("totalSuspendidas").textContent=licencias.filter(x=>
+    String(x.estado).toUpperCase()==="SUSPENDIDA"
+  ).length;
+  $("licencias").replaceChildren();
+
+  if(!licencias.length){
+   $("licencias").textContent="Todavía no hay licencias.";
+  }
+
+  for(const l of licencias){
+   const card=document.createElement("div");
+   card.className="item";
+
+   const titulo=document.createElement("h3");
+   titulo.textContent=l.cliente+" — "+l.producto;
+
+   const estado=document.createElement("p");
+   estado.textContent="Licencia #"+l.id+" | Estado: "+l.estado+
+    " | Vence: "+l.vence_en;
+
+   const activar=document.createElement("button");
+   activar.textContent="ACTIVAR";
+   activar.className="verde";
+
+   const suspender=document.createElement("button");
+   suspender.textContent="SUSPENDER";
+   suspender.className="rojo";
+
+   activar.onclick=()=>estadoLicencia(l.id,"activa");
+   suspender.onclick=()=>estadoLicencia(l.id,"suspendida");
+
+   const nueva=document.createElement("button");
+   nueva.textContent="CAMBIAR CLAVE";
+   nueva.onclick=()=>regenerarClave(l.id);
+   const borrar=document.createElement("button");
+   borrar.textContent="ELIMINAR LICENCIA";
+   borrar.className="rojo";
+   borrar.onclick=()=>eliminarLicencia(l.id,l.cliente,l.producto);
+   card.append(titulo,estado,activar,suspender,nueva,borrar);
+   cqFichaCliente(card,l);
+   configurarLimite(card,l);
+   $("licencias").append(card);
+  }
+  msg("Datos actualizados correctamente.");
+ }catch(e){msg(e.message)}
+}
+
+async function estadoLicencia(id,estado){
+ try{
+  await api("/api/licencias/"+id+"/estado",{
+   method:"PATCH",
+   body:JSON.stringify({estado})
+  });
+  await cargar();
+  msg("Licencia "+id+" actualizada: "+estado);
+ }catch(e){msg(e.message)}
+}
+
+$("formCliente").onsubmit=async e=>{
+ e.preventDefault();
+ try{
+  await api("/api/control/clientes",{
+   method:"POST",
+   body:JSON.stringify({
+    nombre:$("nombre").value,
+    email:$("email").value
+   })
+  });
+  e.target.reset();
+  await cargar();
+  msg("Cliente creado correctamente.");
+ }catch(err){msg(err.message)}
+};
+
+$("formLicencia").onsubmit=async e=>{
+ e.preventDefault();
+ try{
+  const r=await api("/api/cq-fichas-clientes/crear",{
+   method:"POST",
+   body:JSON.stringify({
+    cliente_id:Number($("cliente").value),
+    producto_codigo:$("producto").value,
+    dias:Number($("dias").value),
+    max_perfiles:Number($("maxPerfilesNuevo").value)
+   })
+  });
+  $("clave").textContent="CLAVE: "+r.clave;
+  await cargar();
+  msg("Licencia creada. ID "+r.id);
+ }catch(err){msg(err.message)}
+};
+
+async function regenerarClave(id){
+ if(!confirm(
+  "¿Generar nueva clave para la licencia #"+id+
+  "? La clave anterior dejará de funcionar y se liberará el dispositivo anterior."
+ ))return;
+
+ try{
+  const r=await api("/api/control/licencias/"+id+"/nueva-clave",{
+   method:"POST",
+   body:JSON.stringify({})
+  });
+
+  $("clave").textContent=
+   "CLAVE: "+r.clave;
+
+  $("clave").scrollIntoView({behavior:"smooth",block:"center"});
+  msg("Nueva clave generada para la licencia #"+id+".");
+ }catch(e){msg(e.message)}
+}
+
+async function eliminarLicencia(id,cliente,producto){
+ const confirmado=confirm(
+  "¿ELIMINAR DEFINITIVAMENTE ESTA LICENCIA?\n\n"+
+  "Cliente: "+cliente+"\n"+
+  "Extensión: "+producto+"\n"+
+  "Licencia #"+id+"\n\n"+
+  "La clave dejará de funcionar y esta membresía desaparecerá del panel."
+ );
+
+ if(!confirmado)return;
+
+ try{
+  await api("/api/control/licencias/"+id,{
+   method:"DELETE"
+  });
+  await cargar();
+  msg("Licencia #"+id+" eliminada correctamente.");
+ }catch(e){
+  msg("No se pudo eliminar: "+e.message);
+ }
+}
+
+async function salir(){
+ try{await api("/api/logout",{method:"POST"})}catch(e){}
+ location.href="/login.html";
+}
+cargar();
+</script>
+<script src="/limites-perfiles.js"></script>
+<script src="/productos-normales.js"></script>
+<script src="/productos-normal2.js"></script>
+</body>
+</html>

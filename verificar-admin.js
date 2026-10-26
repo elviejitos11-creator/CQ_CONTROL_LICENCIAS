@@ -1,0 +1,1 @@
+const Database=require("better-sqlite3"); const db=new Database("data/cq_control.db"); console.table(db.prepare("SELECT id, usuario FROM administradores").all()); db.close();

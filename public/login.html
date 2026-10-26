@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CQ CONTROL - Acceso</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:grid;place-items:center;background:#0b1020;color:white;font-family:Arial,sans-serif;padding:20px}
+.panel{width:100%;max-width:400px;background:#171f35;border:1px solid #343d59;border-radius:18px;padding:32px}
+.logo{text-align:center;font-size:48px}
+h1{text-align:center;color:#b69cff;margin:12px 0}
+.sub{text-align:center;color:#9ca3af;margin-bottom:28px}
+label{display:block;margin:16px 0 8px}
+input{width:100%;padding:13px;background:#0b1020;color:white;border:1px solid #46506b;border-radius:9px}
+button{width:100%;padding:14px;background:#7c3aed;color:white;border:0;border-radius:9px;margin-top:24px;font-size:16px;cursor:pointer}
+button:disabled{opacity:.6}
+#error{color:#f87171;text-align:center;min-height:22px;margin-top:16px}
+</style>
+</head>
+<body>
+<div class="panel">
+<div class="logo">🐺</div>
+<h1>CQ CONTROL</h1>
+<p class="sub">Acceso privado de administración</p>
+<form id="login">
+<label for="usuario">Usuario</label>
+<input id="usuario" autocomplete="username" required>
+<label for="clave">Contraseña</label>
+<input id="clave" type="password" autocomplete="current-password" required>
+<button id="boton" type="submit">INICIAR SESIÓN</button>
+<p id="error" role="alert"></p>
+</form>
+</div>
+<script>
+const form=document.getElementById("login");
+const boton=document.getElementById("boton");
+const error=document.getElementById("error");
+form.addEventListener("submit",async function(e){
+ e.preventDefault();
+ boton.disabled=true;
+ error.textContent="";
+ try{
+  const r=await fetch("/api/login",{
+   method:"POST",
+   headers:{"Content-Type":"application/json"},
+   credentials:"same-origin",
+   body:JSON.stringify({
+    usuario:document.getElementById("usuario").value,
+    clave:document.getElementById("clave").value
+   })
+  });
+  const data=await r.json();
+  if(!r.ok||!data.ok)throw new Error(data.error||"No se pudo iniciar sesión");
+  window.location.href="/";
+ }catch(err){
+  error.textContent=err.message;
+ }finally{
+  boton.disabled=false;
+ }
+});
+</script>
+</body>
+</html>
