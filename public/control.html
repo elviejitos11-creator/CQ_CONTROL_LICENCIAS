@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -24,22 +24,31 @@ small{color:#aab3cc}
 #clave{white-space:pre-wrap;overflow-wrap:anywhere;color:#4ade80}
 </style>
 <style>#clave{display:none!important}</style>
+<link rel="apple-touch-icon" href="/icons/icon-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512.png">
+<link rel="manifest" href="/site.webmanifest">
+<meta name="theme-color" content="#7c4dff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CQ CONTROL">
+<meta name="mobile-web-app-capable" content="yes">
 </head>
 <body>
-<header><h1>🐺 CQ CONTROL</h1><p>Clientes, extensiones y membresías</p></header>
+<header><h1>ðŸº CQ CONTROL</h1><p>Clientes, extensiones y membresÃ­as</p></header>
 <main>
-<div class="fila"><button onclick="cargar()">ACTUALIZAR DATOS</button><button onclick="salir()">CERRAR SESIÓN</button></div>
+<div class="fila"><button onclick="cargar()">ACTUALIZAR DATOS</button><button onclick="salir()">CERRAR SESIÃ“N</button></div>
 <p id="mensaje"></p>
 
 <section>
-<h2>Resumen de administración</h2>
+<h2>Resumen de administraciÃ³n</h2>
 <div class="fila">
  <div class="item">Extensiones disponibles: <strong>2</strong></div>
  <div class="item">Clientes: <strong id="totalClientes">0</strong></div>
  <div class="item">Licencias activas: <strong id="totalActivas">0</strong></div>
  <div class="item">Licencias suspendidas: <strong id="totalSuspendidas">0</strong></div>
 </div>
-<p><small>Administra clientes, membresías y licencias desde esta misma pantalla.</small></p>
+<p><small>Administra clientes, membresÃ­as y licencias desde esta misma pantalla.</small></p>
 </section>
 <section>
 <h2>Registrar cliente</h2>
@@ -51,15 +60,15 @@ small{color:#aab3cc}
 </section>
 
 <section>
-<h2>Crear membresía</h2>
+<h2>Crear membresÃ­a</h2>
 <form id="formLicencia" class="fila">
 <select id="cliente" required></select>
 <select id="producto">
-<option value="LOBO_PRO_1">🐺 LOBO PRO 1</option>
-<option value="LOBO_PRO_2">🐺🐺 LOBO PRO 2</option>
+<option value="LOBO_PRO_1">ðŸº LOBO PRO 1</option>
+<option value="LOBO_PRO_2">ðŸºðŸº LOBO PRO 2</option>
 </select>
 <label>Dias <input id="dias" type="number" min="0" step="1" value="30" required style="width:125px"></label>
-<label>Perfiles máximos <input id="maxPerfilesNuevo" type="number" min="1" max="10000" value="20" required style="width:105px"></label><button type="submit">GENERAR LICENCIA</button>
+<label>Perfiles mÃ¡ximos <input id="maxPerfilesNuevo" type="number" min="1" max="10000" value="20" required style="width:105px"></label><button type="submit">GENERAR LICENCIA</button>
 </form>
 <p id="clave"></p>
 </section>
@@ -81,7 +90,7 @@ async function api(url,options={}){
   ...options,
   headers:{"Content-Type":"application/json",...(options.headers||{})}
  });
- if(r.status===401){location.href="/login.html";throw Error("Sesión requerida")}
+ if(r.status===401){location.href="/login.html";throw Error("SesiÃ³n requerida")}
  const data=await r.json();
  if(!r.ok)throw Error(data.error||"Error HTTP "+r.status);
  return data;
@@ -112,7 +121,7 @@ async function cargar(){
   $("licencias").replaceChildren();
 
   if(!licencias.length){
-   $("licencias").textContent="Todavía no hay licencias.";
+   $("licencias").textContent="TodavÃ­a no hay licencias.";
   }
 
   for(const l of licencias){
@@ -120,7 +129,7 @@ async function cargar(){
    card.className="item";
 
    const titulo=document.createElement("h3");
-   titulo.textContent=l.cliente+" — "+l.producto;
+   titulo.textContent=l.cliente+" â€” "+l.producto;
 
    const estado=document.createElement("p");
    estado.textContent="Licencia #"+l.id+" | Estado: "+l.estado+
@@ -200,8 +209,8 @@ $("formLicencia").onsubmit=async e=>{
 
 async function regenerarClave(id){
  if(!confirm(
-  "¿Generar nueva clave para la licencia #"+id+
-  "? La clave anterior dejará de funcionar y se liberará el dispositivo anterior."
+  "Â¿Generar nueva clave para la licencia #"+id+
+  "? La clave anterior dejarÃ¡ de funcionar y se liberarÃ¡ el dispositivo anterior."
  ))return;
 
  try{
@@ -220,11 +229,11 @@ async function regenerarClave(id){
 
 async function eliminarLicencia(id,cliente,producto){
  const confirmado=confirm(
-  "¿ELIMINAR DEFINITIVAMENTE ESTA LICENCIA?\n\n"+
+  "Â¿ELIMINAR DEFINITIVAMENTE ESTA LICENCIA?\n\n"+
   "Cliente: "+cliente+"\n"+
-  "Extensión: "+producto+"\n"+
+  "ExtensiÃ³n: "+producto+"\n"+
   "Licencia #"+id+"\n\n"+
-  "La clave dejará de funcionar y esta membresía desaparecerá del panel."
+  "La clave dejarÃ¡ de funcionar y esta membresÃ­a desaparecerÃ¡ del panel."
  );
 
  if(!confirmado)return;
@@ -251,3 +260,4 @@ cargar();
 <script src="/productos-normal2.js"></script>
 </body>
 </html>
+

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -17,18 +17,27 @@ button{width:100%;padding:14px;background:#7c3aed;color:white;border:0;border-ra
 button:disabled{opacity:.6}
 #error{color:#f87171;text-align:center;min-height:22px;margin-top:16px}
 </style>
+<link rel="apple-touch-icon" href="/icons/icon-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512.png">
+<link rel="manifest" href="/site.webmanifest">
+<meta name="theme-color" content="#7c4dff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CQ CONTROL">
+<meta name="mobile-web-app-capable" content="yes">
 </head>
 <body>
 <div class="panel">
-<div class="logo">🐺</div>
+<div class="logo">ðŸº</div>
 <h1>CQ CONTROL</h1>
-<p class="sub">Acceso privado de administración</p>
+<p class="sub">Acceso privado de administraciÃ³n</p>
 <form id="login">
 <label for="usuario">Usuario</label>
 <input id="usuario" autocomplete="username" required>
-<label for="clave">Contraseña</label>
+<label for="clave">ContraseÃ±a</label>
 <input id="clave" type="password" autocomplete="current-password" required>
-<button id="boton" type="submit">INICIAR SESIÓN</button>
+<button id="boton" type="submit">INICIAR SESIÃ“N</button>
 <p id="error" role="alert"></p>
 </form>
 </div>
@@ -51,7 +60,7 @@ form.addEventListener("submit",async function(e){
    })
   });
   const data=await r.json();
-  if(!r.ok||!data.ok)throw new Error(data.error||"No se pudo iniciar sesión");
+  if(!r.ok||!data.ok)throw new Error(data.error||"No se pudo iniciar sesiÃ³n");
   window.location.href="/";
  }catch(err){
   error.textContent=err.message;
