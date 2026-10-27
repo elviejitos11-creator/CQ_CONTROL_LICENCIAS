@@ -17,12 +17,7 @@ module.exports = function(app, db, requiereAdmin) {
       ).run(nombre,email);
 
       
-      const max=Number(req.body?.max_perfiles ?? 1);
-      if(!Number.isInteger(max)||max<1||max>10000){
-       return res.status(400).json({error:"Limite invalido"});
-      }
-      db.prepare("UPDATE licencias SET max_perfiles=? WHERE id=?")
-        .run(max,Number(r.lastInsertRowid));
+      
       res.status(201).json({
  ok:true,id:Number(r.lastInsertRowid)});
     } catch(e) {
