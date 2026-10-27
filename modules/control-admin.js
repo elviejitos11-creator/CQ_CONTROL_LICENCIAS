@@ -42,12 +42,21 @@ module.exports = function(app, db, requiereAdmin) {
       if(!c || !p)
         return res.status(404).json({error:"Cliente o producto no existe"});
 
+      const maxPerfilesCQ=Number(req.body?.max_perfiles ?? 1);
+      if(!Number.isInteger(maxPerfilesCQ) ||
+         maxPerfilesCQ<1 ||
+         maxPerfilesCQ>10000)
+        return res.status(400).json({error:"Limite invalido"});
+
       const clave=lic.generarClave();
       const vence=new Date(Date.now()+dias*86400000).toISOString();
 
       const r=db.prepare(
         "INSERT INTO licencias(cliente_id,producto_id,producto_codigo,clave_hash,estado,vence_en) VALUES(?,?,?,?,'ACTIVA',?)"
       ).run(cliente,p.id,producto,lic.hashClave(clave),vence);
+
+      db.prepare("UPDATE licencias SET max_perfiles=? WHERE id=?")
+        .run(maxPerfilesCQ,Number(r.lastInsertRowid));
 
       res.status(201).json({
         ok:true,
