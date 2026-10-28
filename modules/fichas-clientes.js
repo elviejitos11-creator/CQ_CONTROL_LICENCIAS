@@ -1,4 +1,4 @@
-﻿
+
 "use strict";
 const crypto=require("node:crypto");
 
@@ -106,7 +106,27 @@ module.exports=function(app,db,admin){
     "SELECT id FROM clientes WHERE id=?"
    ).get(cliente);
 
-   const p=db.prepare(
+   /* CQ_SEED_PRODUCTOS_SEGURO_V1 */
+const cqProductos = [
+  ["LOBO_PRO_1", "LOBO PRO 1"],
+  ["LOBO_PRO_2", "LOBO PRO 2"],
+  ["LOBO_PRO_1_NORMAL", "LOBO PRO 1 NORMAL"],
+  ["LOBO_PRO_2_NORMAL", "LOBO PRO 2 NORMAL"],
+  ["PANEL3_TELEGRAM_CLIENTE_1", "PANEL3 TELEGRAM CLIENTE UN POST"],
+  ["PANEL3_TELEGRAM_CLIENTE_2", "PANEL3 TELEGRAM CLIENTE DOS POSTS"]
+];
+
+const cqInsertarProducto = db.prepare(
+  "INSERT OR IGNORE INTO productos (codigo,nombre) VALUES (?,?)"
+);
+
+db.transaction(() => {
+  for (const [codigo,nombre] of cqProductos) {
+    cqInsertarProducto.run(codigo,nombre);
+  }
+})();
+/* FIN CQ_SEED_PRODUCTOS_SEGURO_V1 */
+const p=db.prepare(
     "SELECT id FROM productos WHERE codigo=?"
    ).get(producto);
 
