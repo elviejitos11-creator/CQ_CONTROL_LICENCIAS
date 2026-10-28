@@ -1,4 +1,4 @@
-
+﻿
 "use strict";
 const crypto=require("node:crypto");
 
@@ -99,7 +99,7 @@ module.exports=function(app,db,admin){
    if(!Number.isSafeInteger(cliente)||cliente<=0||
       !Number.isSafeInteger(dias)||dias<0||
       !Number.isSafeInteger(perfiles)||perfiles<1||
-      !["LOBO_PRO_1","LOBO_PRO_2","LOBO_PRO_1_NORMAL","LOBO_PRO_2_NORMAL"].includes(producto))
+      !["LOBO_PRO_1","LOBO_PRO_2","LOBO_PRO_1_NORMAL","LOBO_PRO_2_NORMAL","PANEL3_TELEGRAM_CLIENTE_1","PANEL3_TELEGRAM_CLIENTE_2"].includes(producto))
     return res.status(400).json({error:"Datos invalidos"});
 
    const c=db.prepare(
@@ -234,3 +234,4 @@ module.exports=function(app,db,admin){
   }
  });
 };
+
