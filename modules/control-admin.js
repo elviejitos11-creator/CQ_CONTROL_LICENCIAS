@@ -1,4 +1,4 @@
-﻿"use strict";
+"use strict";
 const crypto = require("node:crypto");
 const lic = require("./licencias");
 
@@ -32,7 +32,7 @@ module.exports = function(app, db, requiereAdmin) {
       const dias=Number(req.body?.dias);
 
       if(!Number.isSafeInteger(cliente) || cliente<=0 ||
-         !["LOBO_PRO_1","LOBO_PRO_2"].includes(producto) ||
+         !Object.prototype.hasOwnProperty.call(lic.PRODUCTOS, producto) ||
          !Number.isInteger(dias) || dias<1 || dias>365)
         return res.status(400).json({error:"Datos invalidos"});
 
