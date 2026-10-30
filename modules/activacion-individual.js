@@ -15,7 +15,7 @@ module.exports=function(app,db){
    const dispositivo=String(req.body?.dispositivo||"");
 
    if(!/^CQ-(?:[A-F0-9]{48}|(?:[A-F0-9]{4}-){3}[A-F0-9]{4})$/.test(clave)||
-      !["LOBO_PRO_1","PANEL3_TELEGRAM_CLIENTE_1","PANEL3_TELEGRAM_CLIENTE_2"].includes(p)||
+      !["LOBO_PRO_1","PANEL3_TELEGRAM_CLIENTE_1","PANEL3_TELEGRAM_CLIENTE_2","PANENEL2_TELEGRAM_UN_POST","PANAL2_TELEGRAM_DOS_POST"].includes(p)||
       !/^[a-f0-9-]{36}$/i.test(dispositivo))
     return res.status(400).json({
      autorizada:false,motivo:"datos_invalidos"
