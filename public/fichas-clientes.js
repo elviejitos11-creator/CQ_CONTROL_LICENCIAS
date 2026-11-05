@@ -157,6 +157,84 @@ function cqFichaCliente(card,l){
  };
 
  perfilCaja.append(perfilTitulo,uso,cantidad,guardar);
+const cqLiberarDispositivo=document.createElement("button");
+cqLiberarDispositivo.type="button";
+cqLiberarDispositivo.textContent="LIBERAR DISPOSITIVO";
+
+const cqListaDispositivos=document.createElement("div");
+cqListaDispositivos.style.display="none";
+cqListaDispositivos.style.marginTop="12px";
+
+cqLiberarDispositivo.addEventListener("click",async()=>{
+  if(cqListaDispositivos.style.display!=="none"){
+    cqListaDispositivos.style.display="none";
+    return;
+  }
+
+  cqListaDispositivos.style.display="block";
+  cqListaDispositivos.textContent="Consultando dispositivos...";
+
+  try {
+    const datos=await cqPeticion(
+      "/api/control/dispositivos/"+l.id,"GET"
+    );
+
+    cqListaDispositivos.replaceChildren();
+
+    if(!datos.dispositivos.length){
+      cqListaDispositivos.textContent="No hay dispositivos registrados.";
+      return;
+    }
+
+    for(const dispositivo of datos.dispositivos){
+      const fila=document.createElement("div");
+      fila.style.padding="10px 0";
+      fila.style.borderBottom="1px solid #444";
+
+      const nombre=document.createElement("div");
+      nombre.style.overflowWrap="anywhere";
+      nombre.textContent="Registro #"+dispositivo.id+
+        " | Dispositivo: "+dispositivo.dispositivo_id+
+        " | Fecha: "+(dispositivo.creado_en||"No disponible");
+
+      const liberar=document.createElement("button");
+      liberar.type="button";
+      liberar.textContent="LIBERAR ESTE DISPOSITIVO";
+
+      liberar.addEventListener("click",async()=>{
+        if(!confirm(
+          "Liberar solamente el registro #"+dispositivo.id+
+          "? Este navegador perdera su autorizacion."
+        )) return;
+
+        liberar.disabled=true;
+
+        try {
+          await cqPeticion(
+            "/api/control/dispositivos/"+l.id+"/"+dispositivo.id,
+            "DELETE"
+          );
+
+          fila.remove();
+          await cargarPerfiles();
+          alert("Dispositivo liberado. Se recupero un espacio.");
+        }catch(error){
+          liberar.disabled=false;
+          alert("No se pudo liberar: "+error.message);
+        }
+      });
+
+      fila.append(nombre,liberar);
+      cqListaDispositivos.append(fila);
+    }
+  }catch(error){
+    cqListaDispositivos.textContent=
+      "Error consultando dispositivos: "+error.message;
+  }
+});
+
+perfilCaja.append(cqLiberarDispositivo,cqListaDispositivos);
+
  grid.append(claveCaja,perfilCaja);
  card.append(grid);
 
