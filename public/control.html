@@ -260,6 +260,104 @@ cargar();
 <script src="/productos-normal2.js"></script>
 <script src="/productos-panel3.js"></script>
 <script src="/productos-panel2.js"></script>
+<script>
+// CQ_ELIMINAR_CLIENTE_SELECTOR_V1
+(()=>{
+  const original=document.getElementById("cliente");
+  if(!original)return;
+
+  const caja=document.createElement("details");
+  caja.style.cssText="position:relative;width:100%;max-width:420px;margin:8px 0 12px";
+
+  const cabecera=document.createElement("summary");
+  cabecera.style.cssText="cursor:pointer;padding:12px 16px;background:#101629;color:white;border:1px solid #465474;border-radius:9px";
+
+  const lista=document.createElement("div");
+  lista.style.cssText="position:absolute;z-index:1000;top:100%;left:0;right:0;max-height:320px;overflow-y:auto;background:#182039;border:1px solid #465474;border-radius:10px;padding:6px;box-shadow:0 8px 24px #0007";
+
+  caja.append(cabecera,lista);
+  original.after(caja);
+  original.style.display="none";
+
+  const mensaje=(error)=>alert(error?.message||String(error));
+
+  function actualizar(){
+    lista.replaceChildren();
+    const opciones=Array.from(original.options);
+
+    cabecera.textContent=
+      original.selectedOptions[0]?.textContent||"Seleccionar cliente";
+
+    if(!opciones.length){
+      lista.textContent="No hay clientes";
+      return;
+    }
+
+    for(const opcion of opciones){
+      const fila=document.createElement("div");
+      fila.style.cssText="display:flex;align-items:center;gap:6px;border-bottom:1px solid #35405a;padding:4px";
+
+      const elegir=document.createElement("button");
+      elegir.type="button";
+      elegir.textContent=opcion.textContent;
+      elegir.style.cssText="flex:1;text-align:left;background:transparent;color:white;border:0;padding:10px;cursor:pointer;overflow-wrap:anywhere";
+
+      elegir.onclick=()=>{
+        original.value=opcion.value;
+        original.dispatchEvent(new Event("change",{bubbles:true}));
+        cabecera.textContent=opcion.textContent;
+        caja.open=false;
+      };
+
+      const borrar=document.createElement("button");
+      borrar.type="button";
+      borrar.textContent="Eliminar";
+      borrar.title="Eliminar este cliente";
+      borrar.style.cssText="background:#a82029;color:white;border:0;border-radius:6px;padding:8px;cursor:pointer";
+
+      borrar.onclick=async()=>{
+        const id=Number(opcion.value);
+        if(!Number.isSafeInteger(id)||id<1)return;
+
+        if(!confirm(
+          "Eliminar definitivamente al cliente "+opcion.textContent+
+          "?\n\nSi tiene licencias asociadas, el sistema bloqueara la eliminacion."
+        ))return;
+
+        borrar.disabled=true;
+
+        try{
+          const r=await fetch(
+            "/api/control/clientes/"+id,
+            {method:"DELETE",credentials:"same-origin",cache:"no-store"}
+          );
+
+          const datos=await r.json();
+
+          if(!r.ok||!datos.ok)
+            throw new Error(datos.error||"No se pudo eliminar");
+
+          await cargar();
+          actualizar();
+          caja.open=false;
+          alert("Cliente eliminado correctamente");
+        }catch(e){
+          borrar.disabled=false;
+          mensaje(e);
+        }
+      };
+
+      fila.append(elegir,borrar);
+      lista.append(fila);
+    }
+  }
+
+  const observador=new MutationObserver(actualizar);
+  observador.observe(original,{childList:true,subtree:true});
+  original.addEventListener("change",actualizar);
+  actualizar();
+})();
+</script>
 </body>
 </html>
 
