@@ -260,6 +260,74 @@ cargar();
 <script src="/productos-normal2.js"></script>
 <script src="/productos-panel3.js"></script>
 <script src="/productos-panel2.js"></script>
+<script>
+// CQ_ELIMINAR_CLIENTES_V7
+(()=>{
+  const selector=document.getElementById("cliente");
+  if(!selector)return;
+
+  const opcion=document.createElement("option");
+  opcion.value="__cq_eliminar__";
+  opcion.textContent="ELIMINAR CLIENTE SELECCIONADO";
+
+  let ultimo="";
+
+  function actualizar(){
+    if(!selector.contains(opcion)){
+      selector.appendChild(opcion);
+    }
+    if(selector.value && selector.value!==opcion.value){
+      ultimo=selector.value;
+    }
+  }
+
+  new MutationObserver(actualizar).observe(
+    selector,{childList:true}
+  );
+
+  selector.addEventListener("change",async()=>{
+    if(selector.value!==opcion.value){
+      ultimo=selector.value;
+      return;
+    }
+
+    selector.value=ultimo;
+
+    const id=Number(ultimo);
+    const cliente=Array.from(selector.options).find(
+      x=>x.value===ultimo
+    );
+
+    if(!Number.isSafeInteger(id)||id<1||!cliente){
+      alert("Selecciona primero un cliente.");
+      return;
+    }
+
+    if(!confirm(
+      "Eliminar definitivamente a "+cliente.textContent+
+      "?\n\nLos clientes con licencias asociadas no se eliminaran."
+    ))return;
+
+    try{
+      const datos=await api(
+        "/api/control/clientes/"+id,
+        {method:"DELETE"}
+      );
+
+      if(!datos.ok)throw Error("No se pudo eliminar");
+
+      ultimo="";
+      await cargar();
+      actualizar();
+      alert("Cliente eliminado correctamente.");
+    }catch(e){
+      alert(e.message);
+    }
+  });
+
+  actualizar();
+})();
+</script>
 </body>
 </html>
 

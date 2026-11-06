@@ -84,4 +84,51 @@ module.exports = function(app, db, requiereAdmin) {
       res.status(500).json({error:"Error consultando licencias"});
     }
   });
+
+  // CQ_ELIMINAR_CLIENTES_V7
+  app.delete("/api/control/clientes/:id", requiereAdmin, (req,res)=>{
+    try {
+      const id=Number(req.params.id);
+
+      if(!Number.isSafeInteger(id) || id<1){
+        return res.status(400).json({error:"ID invalido"});
+      }
+
+      const resultado=db.transaction(()=>{
+        const cliente=db.prepare(
+          "SELECT id FROM clientes WHERE id=?"
+        ).get(id);
+
+        if(!cliente){
+          return {codigo:404,error:"Cliente no encontrado"};
+        }
+
+        const cuenta=db.prepare(
+          "SELECT COUNT(*) AS total FROM licencias WHERE cliente_id=?"
+        ).get(id);
+
+        if(cuenta.total>0){
+          return {
+            codigo:409,
+            error:"Este cliente tiene licencias asociadas. No se elimino."
+          };
+        }
+
+        const eliminado=db.prepare(
+          "DELETE FROM clientes WHERE id=? AND NOT EXISTS (SELECT 1 FROM licencias WHERE cliente_id=?)"
+        ).run(id,id);
+
+        return eliminado.changes===1
+          ? {codigo:200,ok:true}
+          : {codigo:409,error:"No se pudo eliminar el cliente"};
+      })();
+
+      return res.status(resultado.codigo).json(resultado);
+    }catch(e){
+      console.error("Error eliminando cliente:",e);
+      return res.status(409).json({
+        error:"No se pudo eliminar. Existen registros asociados o un error de base de datos."
+      });
+    }
+  });
 };
