@@ -25,45 +25,7 @@ module.exports = function(app, db, requiereAdmin) {
     }
   });
 
-  // CQ_ELIMINAR_CLIENTE_SELECTOR_V1
-app.delete("/api/control/clientes/:id",requireAdmin,(req,res)=>{
-  try {
-    const id=Number(req.params.id);
-    if(!Number.isSafeInteger(id)||id<1)
-      return res.status(400).json({error:"ID invalido"});
-
-    const cliente=db.prepare(
-      "SELECT id,nombre FROM clientes WHERE id=?"
-    ).get(id);
-
-    if(!cliente)
-      return res.status(404).json({error:"Cliente no encontrado"});
-
-    const licencias=db.prepare(
-      "SELECT COUNT(*) AS total FROM licencias WHERE cliente_id=?"
-    ).get(id);
-
-    if(licencias.total>0)
-      return res.status(409).json({
-        error:"Este cliente tiene licencias asociadas. No se elimino."
-      });
-
-    const resultado=db.prepare(
-      "DELETE FROM clientes WHERE id=? AND NOT EXISTS (SELECT 1 FROM licencias WHERE cliente_id=?)"
-    ).run(id,id);
-
-    if(resultado.changes!==1)
-      return res.status(409).json({error:"No se pudo eliminar el cliente"});
-
-    res.set("Cache-Control","no-store").json({ok:true});
-  }catch(e){
-    console.error("Eliminar cliente:",e);
-    res.status(409).json({
-      error:"No se pudo eliminar. Verifique sus registros asociados."
-    });
-  }
-});
-app.post("/api/control/crear-licencia", requiereAdmin, (req,res)=>{
+  app.post("/api/control/crear-licencia", requiereAdmin, (req,res)=>{
     try {
       const cliente=Number(req.body?.cliente_id);
       const producto=String(req.body?.producto_codigo||"");
