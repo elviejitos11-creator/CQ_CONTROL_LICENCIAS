@@ -73,6 +73,39 @@ module.exports = function conectarLicencias(app, db, requiereAdmin) {
     res.json({ ok: true, id, estado });
   });
 
+  // CQ_CONTROL_VERIFICAR_INSTALACION_PANEL3_V1
+  app.post("/api/licencias/verificar-instalacion", (req, res) => {
+    res.set("Cache-Control", "no-store");
+
+    try {
+      const datos = req.body || {};
+      const producto = String(datos.producto || "");
+
+      if (![
+        "PANEL3_TELEGRAM_CLIENTE_1",
+        "PANEL3_TELEGRAM_CLIENTE_2"
+      ].includes(producto)) {
+        return res.status(403).json({
+          autorizada: false,
+          motivo: "producto_no_autorizado"
+        });
+      }
+
+      const resultado = validarLicencia(db, datos);
+
+      if (resultado.autorizada !== true) {
+        return res.status(403).json(resultado);
+      }
+
+      return res.json(resultado);
+    } catch (error) {
+      console.error("Verificar instalacion:", error.message);
+      return res.status(500).json({
+        autorizada: false,
+        motivo: "error_servidor"
+      });
+    }
+  });
   app.post("/api/licencias/verificar", (req, res) => {
     const datos = req.body || {};
     const resultado = validarLicencia(db, datos);
